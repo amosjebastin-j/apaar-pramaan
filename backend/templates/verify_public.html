@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% block title %}{{ _("Verify Credential") }}{% endblock %}
+{% block body %}
+<h2>{{ _("Verify a Student Credential") }}</h2>
+<div class="card"><h3>{{ _("Paste credential token or scan the QR code") }}</h3>
+<form method="get" action="/verify-credential"><textarea name="t" placeholder="{{ _('Credential token') }}">{{ t }}</textarea><p><button class="btn">{{ _("Check authenticity") }}</button></p></form></div>
+{% if valid is not none %}{% if valid %}
+<div class="al s"><b>✔ {{ _("AUTHENTIC") }}</b> – {{ _("signature verified against the AICTE public key.") }}</div>
+<div class="cert"><table class="gov kv">{% for key, val in claims.items() %}<tr><td>{{ key|replace('_',' ')|capitalize }}</td><td>{{ val }}</td></tr>{% endfor %}</table></div>
+{% else %}<div class="al e"><b>✖ {{ _("INVALID / TAMPERED") }}</b> – {{ _("this credential was not issued by the AICTE platform or has been modified.") }}</div>{% endif %}{% endif %}
+{% endblock %}

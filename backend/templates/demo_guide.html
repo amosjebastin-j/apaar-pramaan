@@ -1,0 +1,33 @@
+{% extends "base.html" %}{% block title %}Demo Guide{% endblock %}
+{% block body %}
+<h2>Prototype demo guide</h2>
+<p class="mut">For evaluators and team members. This page is part of the prototype and is not part of the production portal.</p>
+<div class="g3">
+<div class="card"><h3>1 · Institution</h3>
+<p>Login <b>inst001 / inst123</b></p>
+<ol><li><b>Upload Student Data</b> → Download sample file → upload it.</li>
+<li>Filter the result: <i>Rejected</i> (not saved), <i>Warnings</i>, <i>Accepted</i>.</li>
+<li>Upload the same file again → rows show as <i>Records updated</i>.</li>
+<li><b>Add / Update Student</b> → click a demo ID → Fetch from registry → Save.</li>
+<li><b>Students &amp; Certificates</b> → Generate certificate (APAAR ID + Student ID + QR).</li></ol>
+<a class="btn" href="/login?role=INSTITUTION">Institution login</a></div>
+<div class="card"><h3>2 · AICTE</h3>
+<p>Login <b>aicte / aicte123</b></p>
+<ol><li><b>Overview</b>: utilisation chart, excess-enrolment alerts and live activity (refresh after step 1).</li>
+<li><b>Risk &amp; Anomalies</b> → click an institution ID.</li>
+<li><b>Duplicate Enrolment</b>, then <b>Student Record Search</b>.</li>
+<li><b>Audit &amp; Reports</b> → printable report, CSV, audit chain.</li></ol>
+<a class="btn" href="/login?role=AICTE">AICTE login</a></div>
+<div class="card"><h3>3 · Verifier</h3>
+<p>Login <b>employer / verify123</b></p>
+<ol><li>Click an enrolled demo ID → Request consent.</li>
+<li>Enter the OTP shown in the simulated student phone.</li>
+<li>Open the public verification link → AUTHENTIC.</li>
+<li>Change one character of the token → INVALID / TAMPERED.</li></ol>
+<a class="btn" href="/login?role=VERIFIER">Verifier login</a></div>
+</div>
+<div class="card"><h3>Demo APAAR IDs</h3>
+<p><b>Enrolled students</b> (Verifier, AICTE search): {% for d in demo_ids.enrolled %}<span class="chip">{{ d }}</span>{% endfor %}</p>
+<p><b>Registered, not enrolled</b> (Institution → Add / Update Student): {% for d in demo_ids.pool %}<span class="chip">{{ d }}</span>{% endfor %}</p>
+<p class="mut">The APAAR registry in this prototype is a mock table; production would call the APAAR / ABC (DigiLocker) API.</p></div>
+{% endblock %}

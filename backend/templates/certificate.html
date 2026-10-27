@@ -1,0 +1,24 @@
+{% extends "base.html" %}{% block title %}{{ _("Certificate") }}{% endblock %}
+{% block body %}
+<div class="noprint"><a class="btn out" href="/institution?tab=cert">← {{ _("Back") }}</a> <button class="btn" onclick="window.print()">🖨 {{ _("Print certificate") }}</button>
+<span class="mut"> {{ _("Specimen layout – prototype") }}</span></div>
+<div class="certificate">
+  <div class="cert-head">
+    {% if logo('emblem') %}<img src="{{ logo('emblem') }}" alt="Emblem" height="64">{% endif %}
+    <h1>{{ inst.name }}</h1>
+    <h2>{{ _("Certificate of Enrolment") }}</h2>
+  </div>
+  <p class="lead">{{ _("This is to certify that {name} is enrolled in {program} at {institution} for the academic year {year}.", name=e.name, program=e.program, institution=inst.name, year=e.year) }}</p>
+  <table class="gov kv">
+    <tr><td>{{ _("Name") }}</td><td>{{ e.name }}</td></tr>
+    <tr><td>{{ _("Student ID") }}</td><td><b>{{ e.student_id }}</b></td></tr>
+    <tr><td>{{ _("APAAR ID") }}</td><td><b>{{ e.apaar_id }}</b></td></tr>
+    <tr><td>{{ _("Programme") }}</td><td>{{ e.program }}</td></tr>
+    <tr><td>{{ _("Academic Year") }}</td><td>{{ e.year }}–{{ (e.year + 1) % 100 }}</td></tr>
+  </table>
+  <div class="cert-foot">
+    <div class="flex"><img src="data:image/png;base64,{{ qr }}" width="130" alt="QR"><div class="mut">{{ _("Scan to verify this certificate on the APAAR verification portal.") }}<br>{{ _("Digitally signed credential issued via AICTE.") }}</div></div>
+    <div class="sign">{{ _("Authorised Signatory") }}</div>
+  </div>
+</div>
+{% endblock %}

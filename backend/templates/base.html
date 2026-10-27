@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block title %}{{ _("Home") }}{% endblock %} | {{ _("APAAR Student Data Portal") }}</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="disc">{{ _("Prototype developed for Smart India Hackathon 2026 (PS ID 26263) · Not an official website of the Government of India") }}</div>
+<div class="tricolor"><i></i><i></i><i></i></div>
+<div class="topbar"><div class="container flex between">
+  <span>{{ _("Government of India") }}</span>
+  <span class="util">
+    <a href="#main">{{ _("Skip to main content") }}</a>|
+    <a href="#" onclick="return fs(-1)">A-</a><a href="#" onclick="return fs(0)">A</a><a href="#" onclick="return fs(1)">A+</a>|
+    <a href="#" onclick="document.body.classList.toggle('hc');return false">◐ {{ _("High Contrast") }}</a>|
+    {% for code, nm in LANGS.items() %}<a class="lang {{ 'cur' if code == lang }}" href="/lang/{{ code }}">{{ nm }}</a>{% endfor %}
+  </span>
+</div></div>
+<header class="header"><div class="container flex">
+  {% if logo('emblem') %}<img src="{{ logo('emblem') }}" alt="Emblem">{% endif %}
+  <div class="org"><small>{{ _("Government of India") }}</small><b>{{ _("Ministry of Education") }}</b>
+    <span>{{ _("All India Council for Technical Education (AICTE)") }}</span></div>
+  <div class="spacer"></div>
+  {% for n in ['moe', 'aicte', 'apaar'] %}{% if logo(n) %}<img class="sm" src="{{ logo(n) }}" alt="{{ n }}">{% endif %}{% endfor %}
+</div></header>
+<div class="portal-title"><div class="container">{{ _("APAAR Student Data Management & Verification Portal") }}<small>{{ _("for AICTE-Approved Institutions") }}</small></div></div>
+<nav class="nav"><div class="container">
+  <a href="/">{{ _("Home") }}</a><a href="/#about">{{ _("About APAAR") }}</a>
+  <a href="/login?role=INSTITUTION">{{ _("Institution Login") }}</a><a href="/login?role=AICTE">{{ _("AICTE Login") }}</a><a href="/login?role=VERIFIER">{{ _("Verifier Login") }}</a>
+  <a href="/verify-credential">{{ _("Verify Credential") }}</a><a href="/api/docs" target="_blank">{{ _("API Documentation") }}</a>
+  {% if u %}<a class="right" href="/logout">{{ _("Logout") }} ({{ u.name }})</a><a class="right" href="{{ {'AICTE':'/aicte','INSTITUTION':'/institution','VERIFIER':'/verifier'}[u.role] }}">{{ _("My Dashboard") }}</a>{% endif %}
+</div></nav>
+<div class="ticker"><div class="container"><b>{{ _("Latest") }}</b><div class="tk"><span>
+  {{ _("Institutions are requested to upload student-level data against approved intake after completion of admissions • APAAR ID is used as the unique identifier of every student record • Excess enrolment beyond approved intake and supernumerary seats will be flagged for review • (Prototype content)") }}
+</span></div></div></div>
+<main id="main" class="container">{% block body %}{% endblock %}</main>
+<footer><div class="container">
+  <p><a href="/">{{ _("Home") }}</a><a href="/#about">{{ _("About APAAR") }}</a><a href="/api/docs">{{ _("API Documentation") }}</a><a href="/verify-credential">{{ _("Verify Credential") }}</a><a href="#">{{ _("Privacy Policy") }}</a><a href="#">{{ _("Terms of Use") }}</a><a href="#">{{ _("Accessibility Statement") }}</a><a href="#">{{ _("Help / Contact") }}</a><a href="/demo-guide">{{ _("Demo Guide") }}</a></p>
+  <p>{{ _("Data handled in line with the Digital Personal Data Protection Act, 2023: consent-based disclosure, purpose limitation, role-based access and tamper-evident audit trail.") }}</p>
+  <p>{{ _("Designed & developed as a prototype for Smart India Hackathon 2026 · PS ID 26263 · Theme: Smart Automation · Organisation: AICTE (Regulation Bureau). This is not an official website of the Government of India.") }}</p>
+</div></footer>
+<script>
+let z=100;function fs(d){z=d==0?100:Math.max(80,Math.min(135,z+d*10));document.documentElement.style.fontSize=z+"%";return false}
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.pane').forEach(x=>x.classList.remove('on'));
+  t.classList.add('on');document.getElementById(t.dataset.tab).classList.add('on');});
+</script>
+</body></html>

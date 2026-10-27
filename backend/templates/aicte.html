@@ -1,0 +1,75 @@
+{% extends "base.html" %}{% block title %}{{ _("AICTE Dashboard") }}{% endblock %}
+{% block body %}
+<h2>{{ _("AICTE Command Centre – Admissions & Student Records Monitoring") }}</h2>
+<div class="g6">
+  <div class="card kpi"><b>{{ "{:,}".format(k.total) }}</b><span>{{ _("Student records") }}</span></div>
+  <div class="card kpi grn"><b>{{ k.inst }}</b><span>{{ _("Institutions") }}</span></div>
+  <div class="card kpi red"><b>{{ k.flagged }}</b><span>{{ _("High-risk institutions") }}</span></div>
+  <div class="card kpi red"><b>{{ k.invalid }}</b><span>{{ _("Invalid APAAR IDs") }}</span></div>
+  <div class="card kpi saf"><b>{{ k.dups }}</b><span>{{ _("Double-enrolled students") }}</span></div>
+  <div class="card kpi"><b>{{ k.nri }} / {{ k.oci }} / {{ k.fn }}</b><span>{{ _("NRI / OCI / Foreign Nat.") }}</span></div>
+</div>
+
+<div class="tabs">
+  <button class="tab {{ 'on' if tab=='ov' }}" data-tab="ov">{{ _("Overview") }}</button>
+  <button class="tab" data-tab="risk">{{ _("Risk & Anomalies") }}</button>
+  <button class="tab" data-tab="dup">{{ _("Duplicate Enrolment") }}</button>
+  <button class="tab {{ 'on' if tab=='search' }}" data-tab="search">{{ _("Student Record Search") }}</button>
+  <button class="tab" data-tab="aud">{{ _("Audit & Reports") }}</button>
+</div>
+
+<div class="pane {{ 'on' if tab=='ov' }}" id="ov">
+  <div class="card"><h3>{{ _("Intake utilisation by institution (red = above approved + supernumerary intake)") }}</h3><canvas id="c1" height="90"></canvas></div>
+  <div class="g2">
+    <div class="card"><h3>{{ _("State-wise enrolment") }}</h3><canvas id="c2"></canvas></div>
+    <div class="card"><h3>{{ _("Admission quota mix") }}</h3><canvas id="c3"></canvas></div>
+  </div>
+  <div class="g2">
+    <div class="card"><h3>{{ _("Excess enrolment alerts (programme level)") }}</h3>
+      {% if alerts %}<div class="wrap"><table class="gov"><tr><th>{{ _("Institution") }}</th><th>{{ _("Programme") }}</th><th>{{ _("Allowed") }}</th><th>{{ _("Enrolled") }}</th><th>{{ _("Utilisation") }}</th></tr>
+      {% for a in alerts %}<tr><td><a href="/aicte/institution/{{ a.inst_id }}">{{ a.inst_id }}</a></td><td>{{ a.program }}</td><td>{{ a.allowed }}</td><td>{{ a.enrolled }}</td><td><span class="b r">{{ a.fill_pct }}% (+{{ a.excess }})</span></td></tr>{% endfor %}</table></div>
+      {% else %}<div class="al s">{{ _("No programme is above its approved intake.") }}</div>{% endif %}</div>
+    <div class="card"><h3>{{ _("Recent activity (live)") }}</h3>
+      <div class="wrap"><table class="gov"><tr><th>{{ _("Time (UTC)") }}</th><th>{{ _("Actor") }}</th><th>{{ _("Action") }}</th><th>{{ _("Detail") }}</th></tr>
+      {% for a in activity %}<tr><td>{{ a.ts }}</td><td>{{ a.actor }}</td><td>{{ a.action }}</td><td>{{ a.detail }}</td></tr>{% endfor %}</table></div></div>
+  </div>
+</div>
+
+<div class="pane" id="risk"><div class="card"><h3>{{ _("Institution Compliance Risk Score") }}</h3>
+  <p class="mut">{{ _("Score = 50% Isolation-Forest anomaly + 50% policy rules. Higher score = prioritise for inspection.") }} {{ _("Click an institution ID for details.") }}</p>
+  <div class="wrap"><table class="gov"><tr><th>{{ _("ID") }}</th><th>{{ _("Institution") }}</th><th>{{ _("State") }}</th><th>{{ _("Enrolled") }}</th><th>{{ _("Allowed") }}</th><th>{{ _("Utilisation") }}</th><th>{{ _("Risk") }}</th><th>{{ _("Explanation") }}</th></tr>
+  {% for r in risk %}<tr><td><a href="/aicte/institution/{{ r.inst_id }}">{{ r.inst_id }}</a></td><td>{{ r.name }}</td><td>{{ r.state }}</td><td>{{ r.enrolled }}</td><td>{{ r.cap|int }}</td>
+    <td>{{ '%.0f'|format(r.fill_ratio*100) }}%</td>
+    <td><span class="b {{ 'r' if r.risk>=60 else ('o' if r.risk>=30 else 'g') }}">{{ r.risk|int }} · {{ _('High') if r.risk>=60 else (_('Medium') if r.risk>=30 else _('Low')) }}</span></td>
+    <td>{{ r.reasons }}</td></tr>{% endfor %}</table></div></div></div>
+
+<div class="pane" id="dup"><div class="card"><h3>{{ _("Potential duplicate enrolment across institutions") }}</h3>
+  <div class="al e">{{ _("{n} students are enrolled in more than one institution. Notices to be issued to the concerned institutions.", n=k.dups) }}</div>
+  <div class="wrap"><table class="gov"><tr><th>{{ _("APAAR ID") }}</th><th>{{ _("Student") }}</th><th>{{ _("Institution") }}</th><th>{{ _("Programme") }}</th></tr>
+  {% for r in dups %}<tr><td>{{ r.apaar_id }}</td><td>{{ r.name }}</td><td>{{ r.inst_id }}</td><td>{{ r.program }}</td></tr>{% endfor %}</table></div></div></div>
+
+<div class="pane {{ 'on' if tab=='search' }}" id="search"><div class="card"><h3>{{ _("Search student record by APAAR ID") }}</h3>
+  {% if demo_ids.enrolled %}<p class="mut">{{ _("Prototype demo IDs (enrolled students):") }} {% for d in demo_ids.enrolled %}<span class="chip" onclick="document.getElementById('sq').value='{{ d }}'">{{ d }}</span>{% endfor %}</p>{% endif %}
+  <form method="get" action="/aicte"><div class="flex"><input type="text" id="sq" name="q" value="{{ q }}" placeholder="{{ _('12-digit APAAR ID') }}" style="max-width:340px"><button class="btn">{{ _("Search") }}</button></div></form>
+  {% if res is not none %}{% if res %}
+  <div class="wrap"><table class="gov"><tr><th>{{ _("APAAR ID") }}</th><th>{{ _("Student ID") }}</th><th>{{ _("Name") }}</th><th>{{ _("Institution") }}</th><th>{{ _("Programme") }}</th><th>{{ _("Year") }}</th><th>{{ _("Quota") }}</th><th>{{ _("Status") }}</th><th>{{ _("Flags") }}</th></tr>
+  {% for r in res %}<tr><td>{{ r.apaar }}</td><td>{{ r.student_id }}</td><td>{{ r.name }}</td><td><a href="/aicte/institution/{{ r.inst_id }}">{{ r.inst }}</a></td><td>{{ r.program }}</td><td>{{ r.year }}</td><td>{{ r.quota }}</td><td>{{ r.status }}</td><td>{{ r.flags }}</td></tr>{% endfor %}</table></div>
+  {% else %}<div class="al e">{{ _("No record found.") }}</div>{% endif %}{% endif %}</div></div>
+
+<div class="pane" id="aud"><div class="card"><h3>{{ _("Audit trail & reports") }}</h3>
+  {% if chain %}<div class="al s">✔ {{ _("Audit chain integrity verified – no tampering detected.") }}</div>{% else %}<div class="al e">✖ {{ _("Audit chain broken – possible tampering.") }}</div>{% endif %}
+  <p><a class="btn grn" href="/aicte/report.csv">⬇ {{ _("Institution Compliance Report (CSV)") }}</a> <a class="btn" href="/aicte/report" target="_blank">🖨 {{ _("Printable report (save as PDF)") }}</a></p>
+  <div class="wrap"><table class="gov"><tr><th>{{ _("Time (UTC)") }}</th><th>{{ _("Actor") }}</th><th>{{ _("Action") }}</th><th>{{ _("Detail") }}</th><th>{{ _("Hash") }}</th></tr>
+  {% for a in aud %}<tr><td>{{ a.ts }}</td><td>{{ a.actor }}</td><td>{{ a.action }}</td><td>{{ a.detail }}</td><td><code>{{ a.hash }}</code></td></tr>{% endfor %}</table></div></div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+if (window.Chart) {
+const L={{ labels|tojson }},R={{ ratios|tojson }},K={{ risks|tojson }};
+new Chart(document.getElementById('c1'),{type:'bar',data:{labels:L,datasets:[{data:R,backgroundColor:R.map((v,i)=>v>1?'#c62828':(K[i]>=30?'#f9a825':'#2e7d32'))}]},
+ options:{plugins:{legend:{display:false}},scales:{y:{title:{display:true,text:{{ _("Enrolled ÷ allowed intake (1.0 = 100%)")|tojson }}}}}}});
+new Chart(document.getElementById('c2'),{type:'bar',data:{labels:{{ st_l|tojson }},datasets:[{label:{{ _("Enrolled")|tojson }},data:{{ st_v|tojson }},backgroundColor:'#0b4aa2'}]}});
+new Chart(document.getElementById('c3'),{type:'doughnut',data:{labels:{{ q_l|tojson }},datasets:[{data:{{ q_v|tojson }},backgroundColor:['#0b4aa2','#ff9933','#138808','#c62828','#6a1b9a']}]}});
+}
+</script>
+{% endblock %}

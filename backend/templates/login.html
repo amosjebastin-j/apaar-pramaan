@@ -1,0 +1,22 @@
+{% extends "base.html" %}{% block title %}{{ _("Login") }}{% endblock %}
+{% block body %}
+<div class="g2">
+  <div class="card"><h3>{{ title }}</h3>
+    {% if err %}<div class="al e">{{ err }}</div>{% endif %}
+    <form method="post" action="/login">
+      <input type="hidden" name="role" value="{{ role }}">
+      <label>{{ _("User ID") }}</label><input type="text" name="username" required autofocus autocomplete="off">
+      <label>{{ _("Password") }}</label><input type="password" name="password" required>
+      <label>{{ _("Security Check: {a} + {b} = ?", a=a, b=b) }}</label><input type="text" name="captcha" required autocomplete="off">
+      <p><button class="btn">{{ _("Sign in") }}</button></p>
+    </form>
+    <p class="mut">{{ _("Demo credentials:") }} <b>{{ demo }}</b> <button type="button" class="btn out" style="padding:3px 10px" onclick="var d='{{ demo }}'.split(' / ');document.getElementsByName('username')[0].value=d[0];document.getElementsByName('password')[0].value=d[1];">{{ _("Fill") }}</button></p>
+  </div>
+  <div class="card"><h3>{{ _("Security Notice") }}</h3>
+    <ul><li>{{ _("This portal is for authorised officers and verifiers only.") }}</li>
+    <li>{{ _("All logins, searches, uploads and verifications are recorded in a tamper-evident audit trail.") }}</li>
+    <li>{{ _("Student data is disclosed only with the student's consent (OTP) and on a need-to-know basis.") }}</li>
+    <li>{{ _("Never share your credentials.") }}</li></ul>
+  </div>
+</div>
+{% endblock %}

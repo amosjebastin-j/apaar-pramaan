@@ -1,0 +1,24 @@
+{% extends "base.html" %}{% block title %}{{ _("Verification Gateway") }}{% endblock %}
+{% block body %}
+<h2>{{ _("Authorised Verification Gateway") }}</h2>
+<div class="steps"><span class="{{ 'on' if step==1 else 'done' }}">{{ _("1 · Enter APAAR ID") }}</span><span class="{{ 'on' if step==2 else ('done' if step>2) }}">{{ _("2 · Student consent (OTP)") }}</span><span class="{{ 'on' if step==3 }}">{{ _("3 · Verified record") }}</span></div>
+{% if err %}<div class="al e">{{ err }}</div>{% endif %}
+
+{% if step==1 %}<div class="card"><h3>{{ _("Request student verification") }}</h3>
+{% if demo_ids.enrolled %}<p class="mut">{{ _("Prototype demo IDs (enrolled students):") }} {% for d in demo_ids.enrolled %}<span class="chip" onclick="document.getElementById('apq').value='{{ d }}'">{{ d }}</span>{% endfor %}</p>{% endif %}
+<form method="post" action="/verifier/request"><label>{{ _("Student APAAR ID (12 digits)") }}</label>
+<input type="text" id="apq" name="apaar" required maxlength="12" style="max-width:360px"><p><button class="btn">{{ _("Request consent") }}</button></p></form>
+<p class="mut">{{ _("Only enrolment-status fields are disclosed, and only after the student consents.") }}</p></div>
+
+{% elif step==2 %}<div class="card"><h3>{{ _("Consent requested for") }} {{ ap }}</h3>
+<div class="al i">{{ _("An OTP has been sent to the student's registered mobile / DigiLocker account.") }}</div>
+<div class="demo">{{ _("DEMO MODE – student's phone:") }} “{{ _("Your enrolment details are requested for verification. OTP:") }} <span class="otp">{{ otp }}</span>”</div>
+<form method="post" action="/verifier/confirm"><label>{{ _("Enter OTP shared by the student") }}</label><input type="text" name="otp" required maxlength="6" style="max-width:240px"><p><button class="btn">{{ _("Verify") }}</button></p></form></div>
+
+{% else %}<div class="cert"><h3>✔ {{ _("Verified Student Record · digitally signed by AICTE") }}</h3>
+<div class="g2"><div><table class="gov kv">
+{% for key, val in claims.items() %}<tr><td>{{ key|replace('_',' ')|capitalize }}</td><td>{{ val }}</td></tr>{% endfor %}</table></div>
+<div class="flex"><img src="data:image/png;base64,{{ qr }}" width="170" alt="QR"><div class="mut">{{ _("Scan to verify authenticity.") }}</div></div></div>
+<label>{{ _("Credential token") }}</label><textarea readonly>{{ token }}</textarea>
+<p><a class="btn" href="{{ url }}" target="_blank">{{ _("Open public verification link") }}</a> <a class="btn out" href="/verifier">{{ _("New verification") }}</a></p></div>{% endif %}
+{% endblock %}

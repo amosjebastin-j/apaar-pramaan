@@ -1,0 +1,45 @@
+{% extends "base.html" %}{% block title %}{{ _("Home") }}{% endblock %}
+{% block body %}
+<section class="hero">
+  <small>{{ _("AUTOMATED PERMANENT ACADEMIC ACCOUNT REGISTRY · APAAR") }}</small>
+  <h1>{{ _("One Nation, One Student ID") }}</h1>
+  <p>{{ _("A secure, interoperable platform for AICTE-approved institutions to submit student-level data against the APAAR ID, enabling authentic, verifiable and real-time monitored student records aligned with NEP 2020 and the Academic Bank of Credits.") }}</p>
+  <a class="btn saf" href="/verify-credential">{{ _("Verify a Credential") }}</a>
+  <a class="btn out" href="/api/docs" style="margin-left:8px">{{ _("Integration API") }}</a>
+</section>
+
+<div class="g4">
+  <div class="card kpi"><b>{{ "{:,}".format(k.total) }}</b><span>{{ _("Student records in central repository") }}</span></div>
+  <div class="card kpi grn"><b>{{ k.inst }}</b><span>{{ _("Institutions onboarded") }}</span></div>
+  <div class="card kpi saf"><b>{{ k.verif }}</b><span>{{ _("Consent-based verifications completed") }}</span></div>
+  <div class="card kpi red"><b>{{ k.invalid }}</b><span>{{ _("Records flagged: invalid / missing APAAR ID") }}</span></div>
+</div>
+
+<h2>{{ _("Access the Portal") }}</h2>
+<div class="g3">
+  <div class="card"><h3>{{ _("Institution Nodal Officer") }}</h3><p>{{ _("Upload and update student-level data, track intake utilisation, download validation reports.") }}</p><a class="btn" href="/login?role=INSTITUTION">{{ _("Institution Login") }}</a></div>
+  <div class="card"><h3>{{ _("AICTE Officer") }}</h3><p>{{ _("Real-time national monitoring, compliance risk ranking, duplicate-enrolment alerts and policy reports.") }}</p><a class="btn" href="/login?role=AICTE">{{ _("AICTE Login") }}</a></div>
+  <div class="card"><h3>{{ _("Authorised Verifier") }}</h3><p>{{ _("Employers and regulatory bodies verify enrolment through student-consented, digitally signed credentials.") }}</p><a class="btn" href="/login?role=VERIFIER">{{ _("Verifier Login") }}</a></div>
+</div>
+
+<h2 id="about">{{ _("Process Flow") }}</h2>
+<div class="flow">
+  <div><b>{{ _("Institution") }}</b>{{ _("Submits data after admissions") }}</div>
+  <div><b>{{ _("Student Data Upload") }}</b>{{ _("CSV / REST API") }}</div>
+  <div><b>{{ _("APAAR Validation") }}</b>{{ _("Registry & identity checks") }}</div>
+  <div><b>{{ _("Data Verification") }}</b>{{ _("Rules + AI anomaly engine") }}</div>
+  <div><b>{{ _("AICTE Central Repository") }}</b>{{ _("Encrypted & audited") }}</div>
+  <div><b>{{ _("Analytics & Monitoring") }}</b>{{ _("Dashboards & reports") }}</div>
+  <div><b>{{ _("Authorised Verification") }}</b>{{ _("Consent-based, signed QR") }}</div>
+</div>
+
+<h2>{{ _("Key Capabilities") }}</h2>
+<div class="g3">
+  <div class="card"><h3>{{ _("Automated Validation") }}</h3>{{ _("Invalid or unregistered APAAR IDs, duplicate records, identity mismatches and age checks on every row.") }}</div>
+  <div class="card"><h3>{{ _("Intake Guard") }}</h3>{{ _("Approved intake, supernumerary seats, NRI, OCI and Foreign National status tracked live; excess enrolment flagged.") }}</div>
+  <div class="card"><h3>{{ _("Duplicate Enrolment Detection") }}</h3>{{ _("Privacy-preserving (HMAC-hashed) matching of the same APAAR ID across institutions.") }}</div>
+  <div class="card"><h3>{{ _("Intelligent Anomaly Detection") }}</h3>{{ _("Isolation-Forest model with explainable Compliance Risk Score for each institution.") }}</div>
+  <div class="card"><h3>{{ _("Verifiable Student Records") }}</h3>{{ _("Ed25519-signed credentials with QR; APAAR ID and Student ID can be printed on certificates.") }}</div>
+  <div class="card"><h3>{{ _("Security & Privacy") }}</h3>{{ _("Role-based access, consent OTP, AES-256 encryption of identity fields and a hash-chained audit trail.") }}</div>
+</div>
+{% endblock %}

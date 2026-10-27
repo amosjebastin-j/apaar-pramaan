@@ -1,0 +1,113 @@
+{% extends "base.html" %}{% block title %}{{ _("Institution Dashboard") }}{% endblock %}
+{% block body %}
+<h2>{{ inst.name }} <small class="mut">({{ inst.id }} · {{ inst.state }})</small></h2>
+<div class="g4">
+  <div class="card kpi"><b>{{ tot.approved }}</b><span>{{ _("Approved intake") }}</span></div>
+  <div class="card kpi grn"><b>{{ tot.sup }}</b><span>{{ _("Supernumerary seats") }}</span></div>
+  <div class="card kpi saf"><b>{{ tot.enrolled }}</b><span>{{ _("Actual enrolment") }}</span></div>
+  <div class="card kpi {{ 'red' if tot.enrolled > tot.approved + tot.sup }}"><b>{{ '%.0f'|format(tot.enrolled / (tot.approved + tot.sup) * 100) }}%</b><span>{{ _("Intake utilisation") }}</span></div>
+</div>
+<div class="tabs">
+  <button class="tab {{ 'on' if tab=='seat' }}" data-tab="seat">{{ _("Seat Matrix") }}</button>
+  <button class="tab {{ 'on' if tab=='up' }}" data-tab="up">{{ _("Upload Student Data") }}</button>
+  <button class="tab {{ 'on' if tab=='add' }}" data-tab="add">{{ _("Add / Update Student") }}</button>
+  <button class="tab {{ 'on' if tab=='students' }}" data-tab="students">{{ _("Students & Certificates") }}</button>
+  {% if res %}<button class="tab {{ 'on' if tab=='res' }}" data-tab="res">{{ _("Validation Result") }}</button>{% endif %}
+</div>
+
+<div class="pane {{ 'on' if tab=='seat' }}" id="seat"><div class="card"><h3>{{ _("Programme-wise seat matrix") }}</h3>
+<div class="wrap"><table class="gov"><tr><th>{{ _("Programme") }}</th><th>{{ _("Approved Intake") }}</th><th>{{ _("Supernumerary") }}</th><th>{{ _("Enrolled") }}</th><th>NRI</th><th>OCI</th><th>{{ _("Foreign Nat.") }}</th><th>{{ _("Utilisation") }}</th><th>{{ _("Status") }}</th></tr>
+{% for r in rows %}{% set p = r['fill_%'] %}<tr><td>{{ r.program }}</td><td>{{ r.approved|int }}</td><td>{{ r.supernumerary|int }}</td><td>{{ r.enrolled|int }}</td><td>{{ r.NRI|int }}</td><td>{{ r.OCI|int }}</td><td>{{ r.FN|int }}</td><td>{{ p }}%</td>
+<td><span class="b {{ 'r' if p>100 else ('o' if p>=90 else 'g') }}">{{ _('Over intake') if p>100 else (_('Near capacity') if p>=90 else _('Within limit')) }}</span></td></tr>{% endfor %}</table></div></div></div>
+
+<div class="pane {{ 'on' if tab=='up' }}" id="up"><div class="card"><h3>{{ _("Submit student-level data (APAAR ID based)") }}</h3>
+{% if err %}<div class="al e">{{ err }}</div>{% endif %}
+<div class="al i">{{ _("CSV columns:") }} <code>apaar_id, student_id, name, dob, gender, category, program, year, admission_date, quota, nri, oci, fn</code> · <a href="/institution/sample.csv">{{ _("Download sample file") }}</a><br>{{ _("Dates as YYYY-MM-DD. Uploading an existing APAAR ID again updates that student's record.") }}</div>
+<form method="post" action="/institution/upload" enctype="multipart/form-data">
+<label>{{ _("Select CSV file") }}</label><input type="file" name="file" accept=".csv" required>
+<p><button class="btn">{{ _("Validate & Submit to AICTE") }}</button></p></form></div></div>
+
+<div class="pane {{ 'on' if tab=='add' }}" id="add"><div class="card"><h3>{{ _("Add or update a single student") }}</h3>
+{% if flash %}
+<div class="al {{ 'e' if flash.status=='REJECTED' else ('o' if flash.status=='WARNING' else 's') }}">
+  <b>{{ flash.name }} ({{ flash.apaar }})</b> → <b>{{ flash.status }}</b>
+  {% if flash.status == 'REJECTED' %} – {{ _("not saved") }}{% elif flash.status == 'UPDATED' %} – {{ _("existing record updated") }}{% else %} – {{ _("saved to the AICTE repository") }}{% endif %}
+  {% for c in flash.flags %}<div><code>{{ c }}</code> {{ _(REASONS[c]) if c in REASONS else '' }}</div>{% endfor %}
+</div>{% endif %}
+<p class="mut">{{ _("Enter the APAAR ID and fetch the student's identity from the APAAR registry. Entering an existing APAAR ID updates that record.") }}</p>
+{% if demo_ids.pool %}<p class="mut">{{ _("Prototype demo IDs (registered, not enrolled yet):") }}
+  {% for d in demo_ids.pool[:5] %}<span class="chip" onclick="pick('ap','{{ d }}');document.getElementById('lookup').click()">{{ d }}</span>{% endfor %}</p>{% endif %}
+<form method="post" action="/institution/add">
+<div class="g3">
+ <div><label>{{ _("APAAR ID") }} *</label><input type="text" id="ap" name="apaar_id" maxlength="12" required autocomplete="off">
+   <button type="button" class="btn out" id="lookup" style="margin-top:6px">{{ _("Fetch from APAAR registry") }}</button><div id="lookmsg" class="mut" style="margin-top:4px"></div></div>
+ <div><label>{{ _("Name") }} *</label><input type="text" id="nm" name="name" required></div>
+ <div><label>{{ _("Date of birth") }} *</label><input type="date" id="dob" name="dob" required></div>
+ <div><label>{{ _("Student ID") }} *</label><input type="text" name="student_id" placeholder="{{ inst.id }}-XXX-26-0001" required></div>
+ <div><label>{{ _("Programme") }} *</label><select name="program" required>{% for p in programs %}<option>{{ p }}</option>{% endfor %}</select></div>
+ <div><label>{{ _("Admission date") }}</label><input type="date" name="admission_date" value="2026-08-15"></div>
+ <div><label>{{ _("Gender") }}</label><select name="gender"><option value="M">M</option><option value="F">F</option></select></div>
+ <div><label>{{ _("Category") }}</label><select name="category"><option>General</option><option>OBC</option><option>SC</option><option>ST</option><option>EWS</option></select></div>
+ <div><label>{{ _("Admission quota") }}</label><select name="quota"><option>Regular</option><option>Supernumerary</option><option>NRI</option><option>OCI</option><option>FN</option></select></div>
+</div>
+<p><label class="inl"><input type="checkbox" name="nri"> NRI</label> <label class="inl"><input type="checkbox" name="oci"> OCI</label> <label class="inl"><input type="checkbox" name="fn"> {{ _("Foreign National") }}</label></p>
+<p><button class="btn">{{ _("Save student") }}</button></p></form></div></div>
+
+<div class="pane {{ 'on' if tab=='students' }}" id="students"><div class="card"><h3>{{ _("Students & certificates (APAAR ID + Student ID)") }}</h3>
+<form method="get" action="/institution"><input type="hidden" name="tab" value="students"><div class="flex"><input type="text" name="q" value="{{ q }}" placeholder="{{ _('Name, Student ID or 12-digit APAAR ID') }}" style="max-width:380px"><button class="btn">{{ _("Search") }}</button></div></form>
+<p class="mut">{{ _("Showing {n} of {t} students (newest first).", n=students|length, t=total_students) }}</p>
+{% if students %}
+<div class="wrap"><table class="gov"><tr><th>{{ _("Student ID") }}</th><th>{{ _("Name") }}</th><th>{{ _("APAAR ID") }}</th><th>{{ _("Programme") }}</th><th>{{ _("Status") }}</th><th></th></tr>
+{% for s in students %}<tr><td>{{ s.student_id }}</td><td>{{ s.name }}</td><td>{{ s.apaar }}</td><td>{{ s.program }}</td><td><span class="b {{ 'g' if s.status in ['ACCEPTED','UPDATED'] else 'o' }}">{{ s.status }}</span></td><td><a class="btn out" href="/institution/certificate/{{ s.id }}">{{ _("Generate certificate") }}</a></td></tr>{% endfor %}</table></div>
+{% elif tab == 'students' %}<div class="al e">{{ _("No saved student matches your search. Rejected rows are not saved, so their APAAR IDs do not appear here.") if q else _("No students yet.") }}</div>{% endif %}
+</div></div>
+
+{% if res %}<div class="pane {{ 'on' if tab=='res' }}" id="res"><div class="card"><h3>{{ _("Validation result") }}</h3>
+<div class="g5">
+ <div class="card kpi"><b>{{ res.total }}</b><span>{{ _("Rows received") }}</span></div>
+ <div class="card kpi grn"><b>{{ res.cnt.get('ACCEPTED',0) }}</b><span>{{ _("Accepted") }}</span></div>
+ <div class="card kpi"><b>{{ res.cnt.get('UPDATED',0) }}</b><span>{{ _("Records updated") }}</span></div>
+ <div class="card kpi saf"><b>{{ res.cnt.get('WARNING',0) }}</b><span>{{ _("Accepted with warnings") }}</span></div>
+ <div class="card kpi red"><b>{{ res.cnt.get('REJECTED',0) }}</b><span>{{ _("Rejected") }}</span></div>
+</div>
+<div class="al i">{{ _("Accepted, updated and warning rows are saved and already visible on the AICTE dashboard. Rejected rows are not saved: fix them and upload again.") }}</div>
+<p><a class="btn grn" href="{{ res.link }}">⬇ {{ _("Download error report") }}</a></p>
+<div class="fchips">
+ <button type="button" class="fchip on" data-f="all">{{ _("All") }} ({{ res.total }})</button>
+ <button type="button" class="fchip" data-f="REJECTED">{{ _("Rejected") }} ({{ res.cnt.get('REJECTED',0) }})</button>
+ <button type="button" class="fchip" data-f="WARNING">{{ _("Warnings") }} ({{ res.cnt.get('WARNING',0) }})</button>
+ <button type="button" class="fchip" data-f="UPDATED">{{ _("Records updated") }} ({{ res.cnt.get('UPDATED',0) }})</button>
+ <button type="button" class="fchip" data-f="ACCEPTED">{{ _("Accepted") }} ({{ res.cnt.get('ACCEPTED',0) }})</button>
+</div>
+<div class="wrap"><table class="gov" id="rt"><tr><th>{{ _("APAAR ID") }}</th><th>{{ _("Student ID") }}</th><th>{{ _("Name") }}</th><th>{{ _("Programme") }}</th><th>{{ _("Status") }}</th><th>{{ _("Reason codes") }}</th></tr>
+{% for r in res.rows %}<tr data-s="{{ r.status }}"><td>{{ r.apaar_id }}</td><td>{{ r.student_id }}</td><td>{{ r.name }}</td><td>{{ r.program }}</td>
+<td><span class="b {{ 'r' if r.status=='REJECTED' else ('o' if r.status=='WARNING' else 'g') }}">{{ r.status }}</span></td>
+<td class="reasons">{% for c in r.flags.split(', ') if c %}<div><code>{{ c }}</code> {{ _(REASONS[c]) if c in REASONS else '' }}</div>{% endfor %}</td></tr>{% endfor %}</table></div></div></div>{% endif %}
+
+<script>
+function pick(id, v){ document.getElementById(id).value = v; }
+(function(){
+  const lk = document.getElementById('lookup'); if (!lk) return;
+  lk.onclick = async function(){
+    const v = document.getElementById('ap').value.trim(), msg = document.getElementById('lookmsg');
+    msg.textContent = '…';
+    try {
+      const r = await (await fetch('/institution/lookup?apaar=' + encodeURIComponent(v))).json();
+      if (r.found) {
+        document.getElementById('nm').value = r.name; document.getElementById('dob').value = r.dob;
+        msg.textContent = '✔ ' + {{ _("Found in the APAAR registry")|tojson }} + (r.enrolled_in.length ? ' · ' + {{ _("already enrolled in")|tojson }} + ' ' + r.enrolled_in.join(', ') : '');
+        msg.style.color = '#138808';
+      } else {
+        msg.textContent = '✖ ' + (r.reason === 'format' ? {{ _("APAAR ID must be a 12-digit number")|tojson }} : {{ _("Not found in the APAAR registry")|tojson }});
+        msg.style.color = '#c62828';
+      }
+    } catch (e) { msg.textContent = 'error'; }
+  };
+})();
+document.querySelectorAll('.fchip').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.fchip').forEach(x => x.classList.remove('on')); b.classList.add('on');
+  const f = b.dataset.f;
+  document.querySelectorAll('#rt tr[data-s]').forEach(tr => tr.style.display = (f === 'all' || tr.dataset.s === f) ? '' : 'none');
+});
+</script>
+{% endblock %}

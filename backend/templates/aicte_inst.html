@@ -1,0 +1,20 @@
+{% extends "base.html" %}{% block title %}{{ inst.name }}{% endblock %}
+{% block body %}
+<p><a class="btn out" href="/aicte">← {{ _("Back to dashboard") }}</a></p>
+<h2>{{ inst.name }} <small class="mut">({{ inst.id }} · {{ inst.state }})</small></h2>
+<div class="g4">
+  <div class="card kpi"><b>{{ row.enrolled|int }}</b><span>{{ _("Actual enrolment") }}</span></div>
+  <div class="card kpi grn"><b>{{ row.cap|int }}</b><span>{{ _("Allowed") }}</span></div>
+  <div class="card kpi {{ 'red' if row.fill_ratio > 1 }}"><b>{{ '%.0f'|format(row.fill_ratio*100) }}%</b><span>{{ _("Intake utilisation") }}</span></div>
+  <div class="card kpi {{ 'red' if row.risk >= 60 else 'saf' }}"><b>{{ row.risk|int }}</b><span>{{ _("Compliance Risk Score") }}</span></div>
+</div>
+<div class="al {{ 'e' if row.risk >= 60 else ('o' if row.risk >= 30 else 's') }}"><b>{{ _("Explanation") }}:</b> {{ row.reasons }}</div>
+<div class="card"><h3>{{ _("Programme-wise seat matrix") }}</h3>
+<div class="wrap"><table class="gov"><tr><th>{{ _("Programme") }}</th><th>{{ _("Approved Intake") }}</th><th>{{ _("Supernumerary") }}</th><th>{{ _("Enrolled") }}</th><th>NRI</th><th>OCI</th><th>{{ _("Foreign Nat.") }}</th><th>{{ _("Utilisation") }}</th></tr>
+{% for r in rows %}{% set p = r['fill_%'] %}<tr><td>{{ r.program }}</td><td>{{ r.approved|int }}</td><td>{{ r.supernumerary|int }}</td><td>{{ r.enrolled|int }}</td><td>{{ r.NRI|int }}</td><td>{{ r.OCI|int }}</td><td>{{ r.FN|int }}</td>
+<td><span class="b {{ 'r' if p>100 else ('o' if p>=90 else 'g') }}">{{ p }}%</span></td></tr>{% endfor %}</table></div></div>
+<div class="card"><h3>{{ _("Recent submissions") }}</h3>
+{% if activity %}<div class="wrap"><table class="gov"><tr><th>{{ _("Time (UTC)") }}</th><th>{{ _("Actor") }}</th><th>{{ _("Action") }}</th><th>{{ _("Detail") }}</th></tr>
+{% for a in activity %}<tr><td>{{ a.ts }}</td><td>{{ a.actor }}</td><td>{{ a.action }}</td><td>{{ a.detail }}</td></tr>{% endfor %}</table></div>
+{% else %}<p class="mut">{{ _("No submissions recorded yet.") }}</p>{% endif %}</div>
+{% endblock %}

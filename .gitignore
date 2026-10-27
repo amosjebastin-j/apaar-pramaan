@@ -1,0 +1,28 @@
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+
+# Local databases and generated secrets
+*.db
+*.sqlite
+*.sqlite3
+*.key
+*.pem
+.env
+.env.*
+!.env.example
+
+# Generated demonstration data, uploads and reports
+backend/static/reports/
+backend/sample_upload_dirty.csv
+backend/demo_apaar_ids.txt
+backend/demo_ids.json
+
+# Local executables and editor settings
+cloudflared.exe
+.vscode/

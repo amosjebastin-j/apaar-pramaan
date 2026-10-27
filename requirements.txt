@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+jinja2
+python-multipart
+itsdangerous
+sqlalchemy
+pandas
+scikit-learn
+cryptography
+qrcode[pil]

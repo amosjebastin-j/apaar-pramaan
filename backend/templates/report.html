@@ -1,0 +1,21 @@
+{% extends "base.html" %}{% block title %}{{ _("Printable report") }}{% endblock %}
+{% block body %}
+<div class="noprint"><button class="btn" onclick="window.print()">🖨 {{ _("Print / Save as PDF") }}</button> <a class="btn out" href="/aicte">← {{ _("Back to dashboard") }}</a></div>
+<div class="certificate" style="max-width:1000px">
+<h2 style="text-align:center;color:var(--navy)">{{ _("AICTE Student Data Monitoring Report") }}</h2>
+<p class="mut" style="text-align:center">{{ _("Generated") }}: {{ now }}</p>
+<table class="gov kv">
+<tr><td>{{ _("Student records") }}</td><td><b>{{ "{:,}".format(k.total) }}</b></td></tr>
+<tr><td>{{ _("Institutions") }}</td><td><b>{{ k.inst }}</b></td></tr>
+<tr><td>{{ _("Invalid APAAR IDs") }}</td><td><b>{{ k.invalid }}</b></td></tr>
+<tr><td>{{ _("Double-enrolled students") }}</td><td><b>{{ dups }}</b></td></tr>
+<tr><td>{{ _("NRI / OCI / Foreign Nat.") }}</td><td><b>{{ k.nri }} / {{ k.oci }} / {{ k.fn }}</b></td></tr>
+</table>
+<h3>{{ _("Excess enrolment alerts (programme level)") }}</h3>
+<table class="gov"><tr><th>{{ _("Institution") }}</th><th>{{ _("Programme") }}</th><th>{{ _("Allowed") }}</th><th>{{ _("Enrolled") }}</th><th>{{ _("Utilisation") }}</th></tr>
+{% for a in over %}<tr><td>{{ a.inst_id }} – {{ a.inst_name }}</td><td>{{ a.program }}</td><td>{{ a.allowed }}</td><td>{{ a.enrolled }}</td><td>{{ a.fill_pct }}%</td></tr>{% endfor %}</table>
+<h3>{{ _("Institution Compliance Risk Score") }}</h3>
+<table class="gov"><tr><th>{{ _("ID") }}</th><th>{{ _("Institution") }}</th><th>{{ _("State") }}</th><th>{{ _("Enrolled") }}</th><th>{{ _("Allowed") }}</th><th>{{ _("Risk") }}</th><th>{{ _("Explanation") }}</th></tr>
+{% for r in risk %}<tr><td>{{ r.inst_id }}</td><td>{{ r.name }}</td><td>{{ r.state }}</td><td>{{ r.enrolled }}</td><td>{{ r.cap|int }}</td><td>{{ r.risk|int }}</td><td>{{ r.reasons }}</td></tr>{% endfor %}</table>
+</div>
+{% endblock %}
